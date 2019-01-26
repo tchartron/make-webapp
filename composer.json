@@ -1,0 +1,25 @@
+{
+    "name": "thomas/make-webapp",
+    "description": "Auto configuration of webserver for new web app",
+    // "repositories":[
+    //     {
+    //         "type":"vcs",
+    //         "url":"git@vitis.vinatis.com:tech/infra/deployment-script.git"
+    //     }
+    // ],
+    "require": {
+        "league/climate": "^3.4"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Thomas Chartron",
+            "email": "thomas.chartron@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Helpers\\": "src/Helpers/"
+        }
+    }
+}

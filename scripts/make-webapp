@@ -59,6 +59,12 @@ if($climate->arguments->defined('help')) {
     $climate->usage();
 }
 
+//Check if root
+if (posix_getuid() !== 0){
+    $climate->bold()->red()->out('The script must be run as root user to create web-server configuration files');
+    exit();
+}
+
 $climate->backgroundLightGreen()->bold()->black()->out('Welcome to web app configuration');
 
 //Here we should be able to choose if apache2 or nginx is used
@@ -67,15 +73,15 @@ $climate->backgroundLightGreen()->bold()->black()->out('Welcome to web app confi
 //CORE SCRIPT //
 ////////////////
 
-$shellCurrentUser = execOrFail("whoami");
-$shellCurrentUser = $shellCurrentUser[0]; //dirty change
+// $shellCurrentUser = execOrFail("whoami");
+// $shellCurrentUser = $shellCurrentUser[0]; //dirty change
 // die($shellCurrentUser[0]);
 //Interactive mode
 if($climate->arguments->defined('interactive')) {
     $args = interactive();
     $climate->backgroundLightGreen()->black()->out('WebApp configuration :');
     $climate->backgroundLightGreen()->black()->br()->out('Web server : '.$args['web-server']);
-    $climate->backgroundLightGreen()->black()->br()->out('Site Folder : /home/'.$shellCurrentUser.'/www/'.$args['site-name']);
+    $climate->backgroundLightGreen()->black()->br()->out('Site Folder : /home/'.$args['user-home'].'/www/'.$args['site-name']);
     $climate->backgroundLightGreen()->black()->br()->out('Vhost file name : '.$args['vhost-name']);
     $climate->backgroundLightGreen()->black()->br()->out('Local address : '.$args['local-address']);
     $climate->backgroundLightGreen()->black()->br()->out('DocumentRoot : '.$args['document-root']);
@@ -108,10 +114,16 @@ function interactive() : array
 {
     global $climate;
     $args = [];
-    //Site folder
+
     $input = $climate->input('Web server ? default : apache2');
     $input->defaultTo('apache2');
     $args['web-server'] = $input->prompt();
+
+    $input = $climate->input('User home folder ?');
+    $input->accept(function($response) {
+        return ($response !== '');
+    });
+    $args['user-home'] = $input->prompt();
 
     $input = $climate->input('Site name folder ? ex : site-name');
     $input->accept(function($response) {
@@ -138,7 +150,7 @@ function interactive() : array
 
 function makeApp($args) : bool
 {
-    global $shellCurrentUser, $climate;
+    global $climate;
     foreach ($args as $key => $value) {
         switch($key) {
             // case 'web-server':
@@ -146,28 +158,59 @@ function makeApp($args) : bool
             // break;
             case 'site-name':
                 if($args['web-server'] === "apache2") {
-                    execOrFail('mkdir -p  /home/'.$shellCurrentUser.'/www/'.$args['site-name']);
                     if($climate->arguments->defined('verbose')) {
-                        $climate->backgroundLightBlue()->black()->br()->out('Creating /home/'.$shellCurrentUser.'/www/'.$args['site-name'].' folder');
+                        $climate->backgroundLightBlue()->black()->br()->out('Creating /home/'.$args['user-home'].'/www/'.$args['site-name'].' folder');
                     }
+                    execOrFail('mkdir -p  /home/'.$args['user-home'].'/www/'.$args['site-name']);
                 }
             break;
             case 'vhost-name':
                 if($args['web-server'] === "apache2") {
-                    execOrFail('mkdir -p  /home/'.$shellCurrentUser.'/www/'.$args['site-name']);
                     if($climate->arguments->defined('verbose')) {
-                        $climate->backgroundLightBlue()->black()->br()->out('Creating /home/'.$shellCurrentUser.'/www/'.$args['site-name'].' folder');
+                        $climate->backgroundLightBlue()->black()->br()->out('Creating /etc/apache2/sites-available/'.$args['vhost-name'].' vhost configuration file');
                     }
+                    execOrFail('touch /etc/apache2/sites-available/'.$args['vhost-name']);
+                    $vhostContent = "VHOST
+# /etc/apache2/sites-available/websitename.conf
+<VirtualHost *:80>
+ServerAdmin thomas.chartron@gmail.com
+
+# Domaines gérés par ce virtualhost
+ServerName uwithi.work
+ServerAlias *.uwithi.work
+
+# Racine Web
+DocumentRoot /var/www/uwithi/public
+
+# Règles spécifiques s&apos;appliquant à ce dossier
+<Directory /var/www/uwithi/public>
+Options +Indexes +FollowSymLinks
+AllowOverride All
+</Directory>
+# Où placer les logs pour cette hôte
+ErrorLog /home/thomas/dev/logs/www/uwithi-error.log
+CustomLog /home/thomas/dev/logs/www/uwithi-access.log combined
+</VirtualHost>
+VHOST";
+                    if($climate->arguments->defined('verbose')) {
+                        $climate->backgroundLightBlue()->black()->br()->out('Filling vhost configuration file');
+                    }
+                    execOrFail('cat > /etc/apache2/sites-available/'.$args['vhost-name'].' << '.trim($vhostContent));
                 }
             break;
             case 'local-address':
                 if($args['web-server'] === "apache2") {
-
+                    //edit etc/host
                 }
             break;
 
         }
     }
+    //enable site
+     // a2ensite site-name
+     // Reload apache2
+     // Go to site-name.work
+     // Auto deploy on pi webserver option
     return false;
 }
 

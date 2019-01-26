@@ -32,6 +32,12 @@ $climate->arguments->add([
         'description' => 'Local address to create (eg site-name.work)',
         // 'required'    => true
     ],
+    'file' => [
+        'prefix'      => 'f',
+        'longPrefix'  => 'file',
+        'description' => 'Use a config file to setup webapp',
+        // 'required'    => true
+    ],
     'interactive' => [
         'prefix'      => 'i',
         'longPrefix'  => 'interactive',

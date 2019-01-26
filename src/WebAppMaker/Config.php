@@ -16,4 +16,10 @@ class Config {
         }
         return $args;
     }
+
+    public function configApp($args) : bool
+    {
+        //Make all web app config
+        return false;
+    }
 }

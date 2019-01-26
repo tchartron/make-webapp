@@ -3,9 +3,11 @@
 require_once('../vendor/autoload.php');
 
 use League\CLImate\CLImate;
-use Helpers\CLImateHelper;
+use WebAppMaker\Make;
+use WebAppMaker\Config;
+// use WebAppMaker;
 $climate = new CLImate;
-$helper = new CLImateHelper;
+// $helper = new CLImateHelper;
 
 $climate->arguments->add([
     'web-server' => [
@@ -71,7 +73,18 @@ if (posix_getuid() !== 0){
     exit();
 }
 
+$config = new Config();
+// $config->readConfigFile("../webapp.conf");
+$input = $climate->input('Please enter config file path');
+$input->accept(function($response) {
+    return ($response !== '');
+});
+$configFile = $input->prompt();
 $climate->backgroundLightGreen()->bold()->black()->out('Welcome to web app configuration');
+$config->readConfigFile($configFile);
+$climate->backgroundLightGreen()->bold()->black()->out('This is your defined configuration :');
+
+die();
 
 //Here we should be able to choose if apache2 or nginx is used
 

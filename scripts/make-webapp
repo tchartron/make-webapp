@@ -92,6 +92,12 @@ if($climate->arguments->defined('config')) {
         exit();
     } else {
         $climate->backgroundLightGreen()->bold()->black()->out('Starting to build app config');
+
+/////////
+//TODO //
+/////////
+// MUST CHECK THAT FILES CREATION DOES NOT BELONGS TO ROOT USER .... BUT THOMAS INSTEAD
+
         $build = $config->buildAppConfiguration($configValues); //array
     }
 

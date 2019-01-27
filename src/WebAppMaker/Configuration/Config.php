@@ -1,8 +1,10 @@
 <?php
 namespace WebAppMaker\Configuration;
 
-class Config {
+use \WebAppMaker\Wrapper;
 
+class Config {
+    use Wrapper;
     // public const __ROOT_DIR__ = __DIR__;
 
     private $allowedExtension = ["conf", "appconf"];
@@ -52,6 +54,7 @@ class Config {
 
     public function buildAppConfiguration($values) : bool
     {
+        die('hi');
         /*
 array(6) {
   ["APP_NAME"]=>
@@ -79,30 +82,37 @@ array(6) {
             $this->climateInstance->bold()->red()->out('Configuration values must be an array');
             return false;
         }
-        foreach ($values as $key => $value) {
-            switch($key) {
-                case "APP_NAME":
-                break;
-                case "APP_WEBSERVER":
-                    switch ($value) {
-                        case 'apache2':
-                            # code...
-                            break;
-                        case 'nginx':
-                            # code...
-                            break;
-                    }
-                break;
-                case "USER_FOLDER":
-                break;
-                case "VHOST_FILENAME":
-                break;
-                case "LOCAL_ADDRESS":
-                break;
-                case "DOCUMENT_ROOT":
-                break;
-            }
-        }
+        // foreach ($values as $key => $value) {
+        //     switch($key) {
+        //         case "APP_NAME":
+        //             if($this->climateInstance->arguments->defined('verbose')) {
+        //                 $this->climateInstance->backgroundLightBlue()->black()->br()->out('Creating /home/'.$args['user-home'].'/www/'.$args['site-name'].' folder');
+        //             }
+        //             execOrFail('mkdir -p  /home/'.$args['user-home'].'/www/'.$args['site-name']);
+        //         break;
+        //         case "APP_WEBSERVER":
+        //             switch ($value) {
+        //                 case 'apache2':
+        //                     # code...
+        //                     break;
+        //                 case 'nginx':
+        //                     # code...
+        //                     break;
+        //             }
+        //         break;
+        //         case "USER_FOLDER":
+        //         break;
+        //         case "VHOST_FILENAME":
+        //         break;
+        //         case "LOCAL_ADDRESS":
+        //         break;
+        //         case "DOCUMENT_ROOT":
+        //         break;
+        //     }
+        // }
+
+        //Create app dev folder
+
         return false;
     }
 }

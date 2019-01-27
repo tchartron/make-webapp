@@ -51,7 +51,7 @@ class Config {
         return array_filter($config);
     }
 
-    public function buildApp($values) : bool
+    public function buildAppConfiguration($values) : bool
     {
         /*
 array(6) {

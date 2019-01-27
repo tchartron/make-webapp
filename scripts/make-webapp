@@ -7,40 +7,18 @@ use WebAppMaker\Config;
 $climate = new CLImate;
 //Args
 $climate->arguments->add([
-    // 'web-server' => [
-    //     'prefix'       => 'ws',
-    //     'longPrefix'   => 'web-server',
-    //     'description'  => 'Webserver name (apache2 nginx)',
-    //     // 'required'    => true
-    // ],
-    // 'name' => [
-    //     'prefix'       => 'n',
-    //     'longPrefix'   => 'name',
-    //     'description'  => 'Website name',
-    //     // 'required'    => true
-    // ],
-    // 'vhost' => [
-    //     'prefix'      => 'h',
-    //     'longPrefix'  => 'vhost',
-    //     'description' => 'Vhost name',
-    //     // 'required'    => true
-    // ],
-    // 'local-address' => [
-    //     'prefix'      => 'a',
-    //     'longPrefix'  => 'address',
-    //     'description' => 'Local address to create (eg site-name.work)',
-    //     // 'required'    => true
-    // ],
-    'file' => [
-        'prefix'      => 'f',
-        'longPrefix'  => 'file',
+    'config' => [
+        'prefix'      => 'c',
+        'longPrefix'  => 'config',
         'description' => 'Use a config file to setup webapp',
+        'noValue'     => true,
         // 'required'    => true
     ],
-    'interactive' => [
-        'prefix'      => 'i',
-        'longPrefix'  => 'interactive',
-        'description' => 'Interactive creation',
+    'deploy' => [
+        'prefix'      => 'd',
+        'longPrefix'  => 'deploy',
+        'description' => 'Deploy a web app to a distant host',
+        'noValue'     => true,
         // 'required'    => true
     ],
     'verbose' => [
@@ -54,61 +32,73 @@ $climate->arguments->add([
         'longPrefix'  => 'help',
         'description' => 'Prints a usage statement',
         'noValue'     => true,
-    ]
+    ],
+    'other' => [
+        'description' => 'Prints a usage statement'
+    ],
+
 ]);
 $climate->arguments->parse();
 
 if($climate->arguments->defined('help')) {
     return $climate->usage();
 }
-
-$rootDir = __DIR__;
-$configDir = __DIR__."/../config";
-$configReal = realpath($configDir);
-
-//Check if root
-if (posix_getuid() !== 0){
-    $climate->bold()->red()->out('This script must be run as root user to create web-server configuration files');
-    exit();
-}
-//say hello
-$climate->backgroundLightGreen()->bold()->black()->out('Welcome to web app configuration');
-//Check if user would like to use another config folder
-$input = $climate->input('Please select your config folder path (default : /config)');
-$input->defaultTo($configReal);
-$input->accept(function($response) {
-    return ($response !== '' && is_dir($response));
-});
-$configReal = $input->prompt();
-
-$config = new Config($climate);
-$configFile = $config->selectConfigFile($configReal); //string
-$configValues = $config->readConfigFile($configFile); //array
-
-$climate->backgroundLightGreen()->bold()->black()->out('This is your defined configuration :');
-foreach ($configValues as $key => $value) {
-    $climate->backgroundLightGreen()->black()->br()->out($key." = > ".$value);
-}
-$input = $climate->backgroundLightGreen()->bold()->black()->input('Is configuration OK ? [Y/n]');
-$input->accept(['Y', 'y', 'n']);
-$input->strict();
-$response = $input->prompt();
-
-if($response === 'n') {
-    exit();
-} else {
-    $climate->backgroundLightGreen()->bold()->black()->out('Starting to build app config');
-    $build = $config->buildApp($configValues); //array
+// die(var_dump($climate->arguments->get('other')));
+if(!$climate->arguments->defined('config') && !$climate->arguments->defined('deploy')) {
+    $climate->bold()->red()->out("Argument not supported see usage");
+    return $climate->usage();
 }
 
 
+if($climate->arguments->defined('config')) {
+    //////////////////
+    //Configuration //
+    //////////////////
+    $climate->backgroundLightGreen()->bold()->black()->out('App configuration');
 
-function execOrFail($command) {
-    try {
-        exec($command, $output);
-    } catch (Exception $e) {
-        return $e->getMessage();
+    $rootDir = __DIR__;
+    $configDir = __DIR__."/../config";
+    $configPath = realpath($configDir);
+
+    //Check if root
+    if (posix_getuid() !== 0){
+        $climate->bold()->red()->out('This script must be run as root user to create web-server configuration files');
+        exit();
     }
-    // return (!empty($output)) ? $output : true;
-    return $output;
+    //Check if user would like to use another config folder
+    $input = $climate->input('Please select your config folder path (default : /config)');
+    $input->defaultTo($configPath);
+    $input->accept(function($response) {
+        return ($response !== '' && is_dir($response));
+    });
+    $configPath = $input->prompt();
+
+    $config = new Config($climate);
+    //Get .conf files in selected path
+    $configFile = $config->selectConfigFile($configPath); //string
+    //Instantiate array with config file values
+    $configValues = $config->readConfigFile($configFile); //array
+    //Print config recap to the screen
+    $climate->backgroundLightGreen()->bold()->black()->out('This is your defined configuration :');
+    foreach ($configValues as $key => $value) {
+        $climate->backgroundLightGreen()->black()->br()->out($key." = > ".$value);
+    }
+    $input = $climate->backgroundLightGreen()->bold()->black()->input('Is configuration OK ? [Y/n]');
+    $input->accept(['Y', 'y', 'n']);
+    $input->strict();
+    $response = $input->prompt();
+
+    if($response === 'n') {
+        exit();
+    } else {
+        $climate->backgroundLightGreen()->bold()->black()->out('Starting to build app config');
+        $build = $config->buildAppConfiguration($configValues); //array
+    }
+
+} else if($climate->arguments->defined('deploy')) {
+    ///////////////
+    //Deployment //
+    ///////////////
+    $climate->backgroundLightGreen()->bold()->black()->out('App deployment');
+
 }

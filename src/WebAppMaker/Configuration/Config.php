@@ -1,6 +1,5 @@
 <?php
-
-namespace WebAppMaker;
+namespace WebAppMaker\Configuration;
 
 class Config {
 

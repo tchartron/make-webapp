@@ -3,7 +3,7 @@
 require_once('../vendor/autoload.php');
 
 use League\CLImate\CLImate;
-use WebAppMaker\Config;
+use WebAppMaker\Configuration\Config;
 $climate = new CLImate;
 //Args
 $climate->arguments->add([

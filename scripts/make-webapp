@@ -3,37 +3,34 @@
 require_once('../vendor/autoload.php');
 
 use League\CLImate\CLImate;
-// use WebAppMaker\Make;
 use WebAppMaker\Config;
-// use WebAppMaker;
 $climate = new CLImate;
-// $helper = new CLImateHelper;
-
+//Args
 $climate->arguments->add([
-    'web-server' => [
-        'prefix'       => 'ws',
-        'longPrefix'   => 'web-server',
-        'description'  => 'Webserver name (apache2 nginx)',
-        // 'required'    => true
-    ],
-    'name' => [
-        'prefix'       => 'n',
-        'longPrefix'   => 'name',
-        'description'  => 'Website name',
-        // 'required'    => true
-    ],
-    'vhost' => [
-        'prefix'      => 'h',
-        'longPrefix'  => 'vhost',
-        'description' => 'Vhost name',
-        // 'required'    => true
-    ],
-    'local-address' => [
-        'prefix'      => 'a',
-        'longPrefix'  => 'address',
-        'description' => 'Local address to create (eg site-name.work)',
-        // 'required'    => true
-    ],
+    // 'web-server' => [
+    //     'prefix'       => 'ws',
+    //     'longPrefix'   => 'web-server',
+    //     'description'  => 'Webserver name (apache2 nginx)',
+    //     // 'required'    => true
+    // ],
+    // 'name' => [
+    //     'prefix'       => 'n',
+    //     'longPrefix'   => 'name',
+    //     'description'  => 'Website name',
+    //     // 'required'    => true
+    // ],
+    // 'vhost' => [
+    //     'prefix'      => 'h',
+    //     'longPrefix'  => 'vhost',
+    //     'description' => 'Vhost name',
+    //     // 'required'    => true
+    // ],
+    // 'local-address' => [
+    //     'prefix'      => 'a',
+    //     'longPrefix'  => 'address',
+    //     'description' => 'Local address to create (eg site-name.work)',
+    //     // 'required'    => true
+    // ],
     'file' => [
         'prefix'      => 'f',
         'longPrefix'  => 'file',
@@ -53,38 +50,77 @@ $climate->arguments->add([
         'noValue'     => true,
     ],
     'help' => [
+        'prefix'      => 'h',
         'longPrefix'  => 'help',
         'description' => 'Prints a usage statement',
         'noValue'     => true,
-    ],
-    'other' => [
-        'description' => 'The other args passed',
-    ],
+    ]
 ]);
 $climate->arguments->parse();
 
 if($climate->arguments->defined('help')) {
-    $climate->usage();
+    return $climate->usage();
 }
+
+$rootDir = __DIR__;
+$configDir = __DIR__."/../config";
+$configReal = realpath($configDir);
 
 //Check if root
 if (posix_getuid() !== 0){
-    $climate->bold()->red()->out('The script must be run as root user to create web-server configuration files');
+    $climate->bold()->red()->out('This script must be run as root user to create web-server configuration files');
     exit();
 }
-
-$config = new Config();
-// $config->readConfigFile("../webapp.conf");
-$input = $climate->input('Please enter config file path');
-$input->accept(function($response) {
-    return ($response !== '');
-});
-$configFile = $input->prompt();
+//say hello
 $climate->backgroundLightGreen()->bold()->black()->out('Welcome to web app configuration');
-$config->readConfigFile($configFile);
-$climate->backgroundLightGreen()->bold()->black()->out('This is your defined configuration :');
+//Check if user would like to use another config folder
+$input = $climate->input('Please select your config folder path (default : /config)');
+$input->defaultTo($configReal);
+$input->accept(function($response) {
+    return ($response !== '' && is_dir($response));
+});
+$configReal = $input->prompt();
 
-die();
+$config = new Config($climate);
+$configFile = $config->selectConfigFile($configReal); //string
+$configValues = $config->readConfigFile($configFile); //array
+/*
+array(6) {
+  ["APP_NAME"]=>
+  string(8) "example
+"
+  ["APP_WEBSERVER"]=>
+  string(8) "apache2
+"
+  ["USER_FOLDER"]=>
+  string(11) "/home/user
+"
+  ["VHOST_FILENAME"]=>
+  string(17) "001-example.conf
+"
+  ["LOCAL_ADDRESS"]=>
+  string(13) "example.work
+"
+  ["DOCUMENT_ROOT"]=>
+  string(24) "/var/www/example/public
+"
+}
+*/
+
+$climate->backgroundLightGreen()->bold()->black()->out('This is your defined configuration :');
+foreach ($configValues as $key => $value) {
+    $climate->backgroundLightGreen()->black()->br()->out($key." = > ".$value);
+}
+$input = $climate->backgroundLightGreen()->bold()->black()->input('Is configuration OK ? [Y/n]');
+$input->accept(['Y', 'y', 'n']);
+$input->strict();
+$response = $input->prompt();
+
+if($response === 'n') {
+    exit();
+} else {
+    //Build dat bithc
+}
 
 //Here we should be able to choose if apache2 or nginx is used
 
@@ -111,20 +147,8 @@ if($climate->arguments->defined('interactive')) {
 
     if($response === "Y") {
         makeApp($args);
-
     }
-
-    // die(var_dump($args));
 }
-
-
-// $args = $climate->arguments->get('other');
-// die(var_dump($args));
-
-
-
-$climate->backgroundLightGreen()->bold()->black()->out('Congratz !');
-
 /**
  * Allow for interactive needed argument filling
  * @return [type] [description]

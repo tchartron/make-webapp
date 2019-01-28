@@ -65,11 +65,23 @@ class Config {
 
         //Step by step instead of loop through parameters values
         //Create app dev folder
-        if($this->noValueCheck($values['USER_FOLDER']) && is_dir($values['USER_FOLDER'])) {
-            if($this->noValueCheck($values['APP_FOLDER']) && is_dir($values['APP_FOLDER'])) {
-                echo("mkdir -p ".$values['APP_FOLDER']);
-                // execOrFail("mkdir -p ".$values['APP_FOLDER']);
+        // die($values['USER_FOLDER']);
+        // die(var_dump(file_exists($values['USER_FOLDER'])));
+        // die(var_dump(is_dir(trim($values['USER_FOLDER']))));
+        /**
+         * IMPORTANT NOTE :
+         * Trim values is very important as it appear to have a CLRF/LF or a space and is_dir does not like this
+         */
+        if($this->noValueCheck($values['USER_FOLDER']) && is_dir(trim($values['USER_FOLDER']))) {
+            if($this->noValueCheck($values['APP_FOLDER'])) {
+                // echo("mkdir -p ".$values['APP_FOLDER']);
+                $this->climateInstance->backgroundLightGreen()->bold()->black()->out('Creating app folder : '.$values['APP_FOLDER']);
+                $this->execOrFail("mkdir -p ".$values['APP_FOLDER']);
+            } else {
+                $this->climateInstance->bold()->red()->out($values['APP_FOLDER'].' APP_FOLDER Incorrect value');
             }
+        } else {
+            $this->climateInstance->bold()->red()->out($values['USER_FOLDER'].' USER_FOLDER Incorrect value or not a directory');
         }
         //Create vhost
         //Fill vhost

@@ -84,6 +84,7 @@ if($climate->arguments->defined('config')) {
         $climate->backgroundLightGreen()->black()->br()->out($key." = > ".$value);
     }
     $input = $climate->backgroundLightGreen()->bold()->black()->input('Is configuration OK ? [Y/n]');
+    $input->defaultTo('Y');
     $input->accept(['Y', 'y', 'n']);
     $input->strict();
     $response = $input->prompt();
@@ -93,12 +94,7 @@ if($climate->arguments->defined('config')) {
     } else {
         $climate->backgroundLightGreen()->bold()->black()->out('Starting to build app config');
 
-/////////
-//TODO //
-/////////
-// MUST CHECK THAT FILES CREATION DOES NOT BELONGS TO ROOT USER .... BUT THOMAS INSTEAD
-        // return var_dump($configValues);
-        $build = $config->buildAppConfiguration($configValues); //array
+        $build = $config->buildAppConfiguration($configValues); //bool
     }
 
 } else if($climate->arguments->defined('deploy')) {

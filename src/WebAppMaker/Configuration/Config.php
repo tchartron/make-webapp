@@ -76,7 +76,9 @@ class Config {
             if($this->noValueCheck($values['APP_FOLDER'])) {
                 // echo("mkdir -p ".$values['APP_FOLDER']);
                 $this->climateInstance->backgroundLightGreen()->bold()->black()->out('Creating app folder : '.$values['APP_FOLDER']);
-                $this->execOrFail("mkdir -p ".$values['APP_FOLDER']);
+                $this->execOrFail("mkdir -p ".trim($values['APP_FOLDER']));
+                $this->climateInstance->backgroundLightGreen()->bold()->black()->out('Changing app folder rights to : '.$values['APP_FOLDER_OWNER'].':'.$values['APP_FOLDER_GROUP']);
+                $this->execOrFail("chown -Rv ".trim($values['APP_FOLDER_OWNER']).":".trim($values['APP_FOLDER_GROUP'])." ".trim($values['APP_FOLDER']));
             } else {
                 $this->climateInstance->bold()->red()->out($values['APP_FOLDER'].' APP_FOLDER Incorrect value');
             }

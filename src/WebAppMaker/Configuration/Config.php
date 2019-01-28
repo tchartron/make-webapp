@@ -22,8 +22,10 @@ class Config {
         $brace = "{".implode(",", $this->allowedExtension)."}"; //{jpg,gif,png}
         $files = glob("$configPath/*.$brace", GLOB_BRACE);
         // $this->climateInstance->backgroundLightGreen()->bold()->black()->out("$configPath/*.$brace");
-        // die(var_dump($files));
-        // $options = ['Ice Cream', 'Mixtape', 'Teddy Bear', 'Pizza', 'Puppies'];
+        if(empty($files)) {
+            $this->climateInstance->bold()->red()->out("No config files found in ".$configPath);
+            exit();
+        }
         $input = $this->climateInstance->radio('Please send me one of the following:', $files);
         $response = $input->prompt();
         return $response;
@@ -49,12 +51,12 @@ class Config {
             }
             fclose($file);
         }
+        //Filter to get rid of empty values
         return array_filter($config);
     }
 
     public function buildAppConfiguration($values) : bool
     {
-        die('hi');
         /*
 array(6) {
   ["APP_NAME"]=>
@@ -111,7 +113,14 @@ array(6) {
         //     }
         // }
 
+
+        //Step by step instead of loop through parameters values
         //Create app dev folder
+        //Create vhost
+        //Fill vhost
+        //Edit /etc/hosts
+        //a2ensite
+        //symlink dev folder and apache RootDirectory folder  /var/www/uwithi/public
 
         return false;
     }

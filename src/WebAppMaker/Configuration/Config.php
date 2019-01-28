@@ -57,65 +57,20 @@ class Config {
 
     public function buildAppConfiguration($values) : bool
     {
-        /*
-array(6) {
-  ["APP_NAME"]=>
-  string(8) "example
-"
-  ["APP_WEBSERVER"]=>
-  string(8) "apache2
-"
-  ["USER_FOLDER"]=>
-  string(11) "/home/user
-"
-  ["VHOST_FILENAME"]=>
-  string(17) "001-example.conf
-"
-  ["LOCAL_ADDRESS"]=>
-  string(13) "example.work
-"
-  ["DOCUMENT_ROOT"]=>
-  string(24) "/var/www/example/public
-"
-}
-*/
         //Make all web app config
         if(!is_array($values)) {
             $this->climateInstance->bold()->red()->out('Configuration values must be an array');
             return false;
         }
-        // foreach ($values as $key => $value) {
-        //     switch($key) {
-        //         case "APP_NAME":
-        //             if($this->climateInstance->arguments->defined('verbose')) {
-        //                 $this->climateInstance->backgroundLightBlue()->black()->br()->out('Creating /home/'.$args['user-home'].'/www/'.$args['site-name'].' folder');
-        //             }
-        //             execOrFail('mkdir -p  /home/'.$args['user-home'].'/www/'.$args['site-name']);
-        //         break;
-        //         case "APP_WEBSERVER":
-        //             switch ($value) {
-        //                 case 'apache2':
-        //                     # code...
-        //                     break;
-        //                 case 'nginx':
-        //                     # code...
-        //                     break;
-        //             }
-        //         break;
-        //         case "USER_FOLDER":
-        //         break;
-        //         case "VHOST_FILENAME":
-        //         break;
-        //         case "LOCAL_ADDRESS":
-        //         break;
-        //         case "DOCUMENT_ROOT":
-        //         break;
-        //     }
-        // }
-
 
         //Step by step instead of loop through parameters values
         //Create app dev folder
+        if($this->noValueCheck($values['USER_FOLDER']) && is_dir($values['USER_FOLDER'])) {
+            if($this->noValueCheck($values['APP_FOLDER']) && is_dir($values['APP_FOLDER'])) {
+                echo("mkdir -p ".$values['APP_FOLDER']);
+                // execOrFail("mkdir -p ".$values['APP_FOLDER']);
+            }
+        }
         //Create vhost
         //Fill vhost
         //Edit /etc/hosts

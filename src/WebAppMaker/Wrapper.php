@@ -12,4 +12,9 @@ trait Wrapper {
         // return (!empty($output)) ? $output : true;
         return $output;
     }
+
+    function noValueCheck($value) : bool
+    {
+        return ($value !== "" && $value !== 0 && $value !== null);
+    }
 }

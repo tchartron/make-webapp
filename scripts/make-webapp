@@ -97,7 +97,7 @@ if($climate->arguments->defined('config')) {
 //TODO //
 /////////
 // MUST CHECK THAT FILES CREATION DOES NOT BELONGS TO ROOT USER .... BUT THOMAS INSTEAD
-        return var_dump($configValues);
+        // return var_dump($configValues);
         $build = $config->buildAppConfiguration($configValues); //array
     }
 

@@ -1,20 +1,20 @@
 # /etc/apache2/sites-available/websitename.conf
 <VirtualHost *:80>
-ServerAdmin thomas.chartron@gmail.com
+ServerAdmin {{ VHOST_SERVERADMIN }}
 
 # Domaines gérés par ce virtualhost
-ServerName uwithi.work
-ServerAlias *.uwithi.work
+ServerName {{ VHOST_LOCAL_ADDRESS }}
+ServerAlias *.{{ VHOST_LOCAL_ADDRESS }}
 
 # Racine Web
-DocumentRoot /var/www/uwithi/public
+DocumentRoot {{ VHOST_DOCUMENT_ROOT }}
 
 # Règles spécifiques s&apos;appliquant à ce dossier
-<Directory /var/www/uwithi/public>
+<Directory {{ VHOST_DOCUMENT_ROOT }}>
 Options +Indexes +FollowSymLinks
 AllowOverride All
 </Directory>
 # Où placer les logs pour cette hôte
-ErrorLog /home/thomas/dev/logs/www/uwithi-error.log
-CustomLog /home/thomas/dev/logs/www/uwithi-access.log combined
+ErrorLog {{ VHOST_ERROR_LOG }}
+CustomLog {{ VHOST_ACCESS_LOG }} combined
 </VirtualHost>

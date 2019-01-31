@@ -55,10 +55,10 @@ class Config {
         return array_filter($config);
     }
 
-    public function buildAppConfiguration($values) : bool
+    public function buildAppConfiguration($configValues) : bool
     {
         //Make all web app config
-        if(!is_array($values)) {
+        if(!is_array($configValues)) {
             $this->climateInstance->bold()->red()->out('Configuration values must be an array');
             return false;
         }
@@ -74,30 +74,30 @@ class Config {
          * IMPORTANT NOTE :
          * Trim values is very important as it appear to have a CLRF/LF or a space and is_dir does not like this
          */
-        if($this->noValueCheck($values['USER_FOLDER']) && is_dir(trim($values['USER_FOLDER']))) {
-            if($this->noValueCheck($values['APP_FOLDER'])) {
-                // echo("mkdir -p ".$values['APP_FOLDER']);
-                $this->climateInstance->backgroundLightGreen()->bold()->black()->out('Creating app folder : '.$values['APP_FOLDER']);
-                $this->execOrFail("mkdir -p ".trim($values['APP_FOLDER']));
-                $this->climateInstance->backgroundLightGreen()->bold()->black()->out('Changing app folder rights to : '.$values['APP_FOLDER_OWNER'].':'.$values['APP_FOLDER_GROUP']);
-                $this->execOrFail("chown -Rv ".trim($values['APP_FOLDER_OWNER']).":".trim($values['APP_FOLDER_GROUP'])." ".trim($values['APP_FOLDER']));
+        if($this->noValueCheck($configValues['USER_FOLDER']) && is_dir(trim($configValues['USER_FOLDER']))) {
+            if($this->noValueCheck($configValues['APP_FOLDER'])) {
+                // echo("mkdir -p ".$configValues['APP_FOLDER']);
+                $this->climateInstance->backgroundLightGreen()->bold()->black()->out('Creating app folder : '.$configValues['APP_FOLDER']);
+                $this->execOrFail("mkdir -p ".trim($configValues['APP_FOLDER']));
+                $this->climateInstance->backgroundLightGreen()->bold()->black()->out('Changing app folder rights to : '.$configValues['APP_FOLDER_OWNER'].':'.$configValues['APP_FOLDER_GROUP']);
+                $this->execOrFail("chown -Rv ".trim($configValues['APP_FOLDER_OWNER']).":".trim($configValues['APP_FOLDER_GROUP'])." ".trim($configValues['APP_FOLDER']));
             } else {
-                $this->climateInstance->bold()->red()->out($values['APP_FOLDER'].' APP_FOLDER Incorrect value');
+                $this->climateInstance->bold()->red()->out($configValues['APP_FOLDER'].' APP_FOLDER Incorrect value');
             }
         } else {
-            $this->climateInstance->bold()->red()->out($values['USER_FOLDER'].' USER_FOLDER Incorrect value or not a directory');
+            $this->climateInstance->bold()->red()->out($configValues['USER_FOLDER'].' USER_FOLDER Incorrect value or not a directory');
         }
 
         /////////////////////////////////////////
         //WEB SERVER SPECIFIQUE CONFIGURATIONS //
         /////////////////////////////////////////
-        if($this->noValueCheck($values['APP_WEBSERVER'])) {
-            switch(trim($values['APP_WEBSERVER'])) {
+        if($this->noValueCheck($configValues['APP_WEBSERVER'])) {
+            switch(trim($configValues['APP_WEBSERVER'])) {
                 case 'apache2':
                         //Create vhost file
-                        if($this->noValueCheck($values['VHOST_FILENAME'])) {
-                            $this->climateInstance->backgroundLightGreen()->bold()->black()->out('Creating vhost file  : '.$values['VHOST_FILENAME'].' in /etc/apache2/sites-available/');
-                            $this->execOrFail("touch  /etc/apache2/sites-available/".trim($values['VHOST_FILENAME']));
+                        if($this->noValueCheck($configValues['VHOST_FILENAME'])) {
+                            $this->climateInstance->backgroundLightGreen()->bold()->black()->out('Creating vhost file  : '.$configValues['VHOST_FILENAME'].' in /etc/apache2/sites-available/');
+                            $this->execOrFail("touch  /etc/apache2/sites-available/".trim($configValues['VHOST_FILENAME']));
                         }
                         //Fill vhost
                         //trim trailing slash
@@ -119,7 +119,7 @@ class Config {
                         if(file_exists($vhostFile)) {
                             $vhostContent = file_get_contents($vhostFile);
                             //Replace vars in template
-                            //MAKE THIS A METHOD
+                            //MAKE THIS A METHOD ?
                             preg_match_all("/{{[a-zA-Z_\s]+}}/", $vhostContent, $matches);
                             // die(var_dump($matches));
                             /*
@@ -145,9 +145,17 @@ class Config {
 
                              */
                             if(is_array($matches)) {
-                                foreach ($matches as $value) {
-
+                                foreach ($matches as &$value) {
+                                    //Replacing mustaches with nothing
+                                    $value = str_replace(["{{ ", " }}"], "", $value);
+                                    // $value = str_replace($value, $configValues[$value], $value);
                                 }
+                                foreach ($matches as &$value) {
+                                    $tempValue = $value;
+                                    die(var_dump($tempValue));
+                                    $value = str_replace($tempValue, $configValues[$value], $value);
+                                }
+                                die(var_dump($matches));
                             }
                         }
                         // return $response;
@@ -156,7 +164,7 @@ class Config {
                 case 'nginx':
                 break;
                 default:
-                    $this->climateInstance->bold()->red()->out('Web server : '.$values['APP_WEBSERVER'].' not known');
+                    $this->climateInstance->bold()->red()->out('Web server : '.$configValues['APP_WEBSERVER'].' not known');
                 break;
             }
         }

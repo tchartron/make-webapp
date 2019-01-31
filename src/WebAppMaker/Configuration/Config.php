@@ -97,19 +97,12 @@ class Config {
                         //Create vhost file
                         if($this->noValueCheck($configValues['VHOST_FILENAME'])) {
                             $this->climateInstance->backgroundLightGreen()->bold()->black()->out('Creating vhost file  : '.$configValues['VHOST_FILENAME'].' in /etc/apache2/sites-available/');
-                            $this->execOrFail("touch  /etc/apache2/sites-available/".trim($configValues['VHOST_FILENAME']));
+                            $this->execOrFail("touch /etc/apache2/sites-available/".trim($configValues['VHOST_FILENAME']));
                         }
                         //Fill vhost
-                        //trim trailing slash
-                        // die(var_dump(TEST)); //Access constant
                         $vhostPath = realpath(__DIR__."/../../../config/vhost/apache2");
-                        // $this->climateInstance->bold()->red()->out($vhostPath);
-                        // die(var_dump($vhostPath));
                         $vhostPath = rtrim($vhostPath, "/");
-                        // $brace = "{".implode(",", $this->allowedExtension)."}"; //{jpg,gif,png}
-                        // die(realpath(__DIR__."../../config/vhost/apache2/"));
                         $files = glob($vhostPath."/*");
-                        // $this->climateInstance->backgroundLightGreen()->bold()->black()->out("$vhostPath/*.$brace");
                         if(empty($files)) {
                             $this->climateInstance->bold()->red()->out("No config files found in ".$vhostPath);
                             exit();
@@ -119,47 +112,21 @@ class Config {
                         if(file_exists($vhostFile)) {
                             $vhostContent = file_get_contents($vhostFile);
                             //Replace vars in template
-                            //MAKE THIS A METHOD ?
                             preg_match_all("/{{[a-zA-Z_\s]+}}/", $vhostContent, $matches);
-                            // die(var_dump($matches));
-                            /*
-                            *array(1) {
-  [0]=>
-  array(7) {
-    [0]=>
-    string(23) "{{ VHOST_SERVERADMIN }}"
-    [1]=>
-    string(25) "{{ VHOST_LOCAL_ADDRESS }}"
-    [2]=>
-    string(25) "{{ VHOST_LOCAL_ADDRESS }}"
-    [3]=>
-    string(25) "{{ VHOST_DOCUMENT_ROOT }}"
-    [4]=>
-    string(25) "{{ VHOST_DOCUMENT_ROOT }}"
-    [5]=>
-    string(21) "{{ VHOST_ERROR_LOG }}"
-    [6]=>
-    string(22) "{{ VHOST_ACCESS_LOG }}"
-  }
-}
-
-                             */
-                            if(is_array($matches)) {
-                                foreach ($matches as &$value) {
-                                    //Replacing mustaches with nothing
-                                    $value = str_replace(["{{ ", " }}"], "", $value);
-                                    // $value = str_replace($value, $configValues[$value], $value);
+                            if(is_array($matches[0])) {
+                                //Extract keys from template vars
+                                $keys = array_map(function($e) {
+                                    return str_replace(["{{ ", " }}"], "", $e);
+                                }, $matches[0]);
+                                foreach ($keys as $value) {
+                                    //Replace all {{ VAR }} with proper value
+                                    $vhostFinalContent = str_replace($matches[0], $configValues[$value], $vhostContent);
                                 }
-                                foreach ($matches as &$value) {
-                                    $tempValue = $value;
-                                    die(var_dump($tempValue));
-                                    $value = str_replace($tempValue, $configValues[$value], $value);
-                                }
-                                die(var_dump($matches));
+                                //Fill the file
+                                die(var_dump($vhostFinalContent));
+                                file_put_contents("/etc/apache2/sites-available/".trim($configValues['VHOST_FILENAME'], $vhostFinalContent));
                             }
                         }
-                        // return $response;
-                        // die($vhostFile);
                 break;
                 case 'nginx':
                 break;
@@ -168,13 +135,22 @@ class Config {
                 break;
             }
         }
-
-
         //Edit /etc/hosts
+        if($this->noValueCheck($configValues['VHOST_LOCAL_ADDRESS'])) {
+            if(file_exists("/etc/hosts")) {
+                $hostContent = file_get_contents("/etc/hosts");
+                $newHost = "#".trim($configValues['VHOST_LOCAL_ADDRESS']);
+                $newHost .= "127.0.0.1    ".trim($configValues['VHOST_LOCAL_ADDRESS']);
+                file_put_contents("/etc/hosts", $newHost, FILE_APPEND);
+            }
+        }
         //a2ensite
+        $this->execOrFail("a2ensite ".trim($configValues['VHOST_FILENAME']));
         //symlink dev folder and apache RootDirectory folder  /var/www/uwithi/public
-        //reload apache
+        $this->execOrFail("ln -s ".trim($configValues['APP_FOLDER'])." ".trim($configValues['WEB_SERVER_APP_FOLDER']));
+        //restart apache
+        $this->execOrFail("/etc/init.d/apache2 restart");
 
-        return false;
+        return true;
     }
 }

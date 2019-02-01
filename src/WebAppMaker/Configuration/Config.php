@@ -57,18 +57,19 @@ class Config {
 
     public function buildAppConfiguration($configValues) : bool
     {
-        //Make all web app config
         if(!is_array($configValues)) {
             $this->climateInstance->bold()->red()->out('Configuration values must be an array');
             return false;
         }
-
         //Step by step instead of loop through parameters values
         //Create app dev folder APP_FOLDER
         //set owner and groups to APP_FOLDER_OWNER:APP_FOLDER_GROUP
         //check APP_WEBSERVER
         //create vhost VHOST_FILENAME
         //fill VHOST_FILENAME
+        //Edit /etc/hosts
+        //symlink dev folder and apache RootDirectory folder  /var/www/uwithi/public
+        //restart webserver
         //
         /**
          * IMPORTANT NOTE :
@@ -87,12 +88,14 @@ class Config {
         } else {
             $this->climateInstance->bold()->red()->out($configValues['USER_FOLDER'].' USER_FOLDER Incorrect value or not a directory');
         }
-
         /////////////////////////////////////////
         //WEB SERVER SPECIFIQUE CONFIGURATIONS //
         /////////////////////////////////////////
         if($this->noValueCheck($configValues['APP_WEBSERVER'])) {
             switch(trim($configValues['APP_WEBSERVER'])) {
+                /////////////
+                //APACHE 2 //
+                /////////////
                 case 'apache2':
                         //Create vhost file
                         if($this->noValueCheck($configValues['VHOST_FILENAME'])) {
@@ -120,14 +123,17 @@ class Config {
                                 }, $matches[0]);
                                 foreach ($keys as $value) {
                                     //Replace all {{ VAR }} with proper value
-                                    $vhostFinalContent = str_replace($matches[0], $configValues[$value], $vhostContent);
+                                    $vhostFinalContent = str_replace($matches[0], trim($configValues[$value]), $vhostContent);
                                 }
                                 //Fill the file
-                                die(var_dump($vhostFinalContent));
+                                // die(var_dump($vhostFinalContent));
                                 file_put_contents("/etc/apache2/sites-available/".trim($configValues['VHOST_FILENAME'], $vhostFinalContent));
                             }
                         }
                 break;
+                //////////
+                //NGINX //
+                //////////
                 case 'nginx':
                 break;
                 default:
@@ -135,6 +141,9 @@ class Config {
                 break;
             }
         }
+        /////////////////
+        //COMMON STEPS //
+        /////////////////
         //Edit /etc/hosts
         if($this->noValueCheck($configValues['VHOST_LOCAL_ADDRESS'])) {
             if(file_exists("/etc/hosts")) {
@@ -149,8 +158,17 @@ class Config {
         //symlink dev folder and apache RootDirectory folder  /var/www/uwithi/public
         $this->execOrFail("ln -s ".trim($configValues['APP_FOLDER'])." ".trim($configValues['WEB_SERVER_APP_FOLDER']));
         //restart apache
-        $this->execOrFail("/etc/init.d/apache2 restart");
+        if(trim($configValues['APP_WEBSERVER']) == "apache2") {
+            $this->execOrFail("/etc/init.d/apache2 restart");
+        } elseif ($configValues['APP_WEBSERVER'] == "nginx") {
+            # code...
+        }
 
         return true;
+    }
+
+    public function removeAppConfiguration($configValues) : bool
+    {
+
     }
 }

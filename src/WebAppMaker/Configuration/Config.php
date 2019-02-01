@@ -169,6 +169,14 @@ class Config {
 
     public function removeAppConfiguration($configValues) : bool
     {
+        return true;
+    }
 
+    public function pullComposerPackage($packageName, $projectName) : bool
+    {
+        //Pull laravel
+        //composer create-project --prefer-dist laravel/laravel $projectName
+
+        return true;
     }
 }

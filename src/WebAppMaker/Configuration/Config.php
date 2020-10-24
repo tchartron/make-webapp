@@ -68,7 +68,7 @@ class Config {
         //create vhost VHOST_FILENAME
         //fill VHOST_FILENAME
         //Edit /etc/hosts
-        //symlink dev folder and apache RootDirectory folder  /var/www/uwithi/public
+        //symlink dev folder and apache RootDirectory folder  /var/www/app/public
         //restart webserver
         //
         /**
@@ -155,7 +155,7 @@ class Config {
         }
         //a2ensite
         $this->execOrFail("a2ensite ".trim($configValues['VHOST_FILENAME']));
-        //symlink dev folder and apache RootDirectory folder  /var/www/uwithi/public
+        //symlink dev folder and apache RootDirectory folder  /var/www/app/public
         $this->execOrFail("ln -s ".trim($configValues['APP_FOLDER'])." ".trim($configValues['WEB_SERVER_APP_FOLDER']));
         //restart apache
         if(trim($configValues['APP_WEBSERVER']) == "apache2") {

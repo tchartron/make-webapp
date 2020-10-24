@@ -1,10 +1,10 @@
 {
-    "name": "thomas/make-webapp",
+    "name": "make-webapp",
     "description": "Auto configuration of webserver for new web app",
     "repositories":[
         {
             "type":"vcs",
-            "url":"git@gitlab.com:ThomasChartron/make-webapp.git"
+            "url":"git@github.com:tchartron/make-webapp.git"
         }
     ],
     "require": {
